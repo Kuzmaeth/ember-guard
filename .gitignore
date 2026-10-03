@@ -1,0 +1,9 @@
+node_modules/
+dist/
+vite.log
+*.log
+.claude/
+# regenerable Blender preview renders (tools/build_assets.py preview())
+assets/previews/
+.DS_Store
+Thumbs.db
