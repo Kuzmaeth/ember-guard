@@ -675,7 +675,11 @@ export function previewDraw(dt) {
   inst.an[0] = prev.t * 2; inst.an[1] = 0; inst.an[2] = 1; inst.ana.needsUpdate = true;
   const k = prev.locked ? 0.07 : 1.15; inst.t[0] = inst.t[1] = inst.t[2] = k; inst.at.needsUpdate = true; inst.mesh.instanceMatrix.needsUpdate = true;
   renderer.setRenderTarget(null);
-  renderer.setScissorTest(true); renderer.setViewport(r.left, H - r.bottom, r.width, r.height); renderer.setScissor(r.left, H - r.bottom, r.width, r.height);
+  // clip to the scrolling menu body so a half-scrolled preview never draws over the header or outside the panel
+  const sc = prev.el.closest('.sbody'), cr = sc ? sc.getBoundingClientRect() : r;
+  const cl = Math.max(r.left, cr.left), ct = Math.max(r.top, cr.top), cb = Math.min(r.bottom, cr.bottom), cw = Math.min(r.right, cr.right) - cl;
+  if (cb - ct < 2 || cw < 2) return;
+  renderer.setScissorTest(true); renderer.setViewport(r.left, H - r.bottom, r.width, r.height); renderer.setScissor(cl, H - cb, cw, cb - ct);
   renderer.setClearColor(PREV_BG, 1); renderer.clear(true, true, false);
   renderer.render(prev.sc, cam);
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);

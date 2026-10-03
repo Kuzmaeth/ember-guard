@@ -241,3 +241,20 @@ kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 
 /* tips sit below the boss / champion bar */
 #hint{top:calc(max(14px,env(safe-area-inset-top)) + 132px)}
 @media(max-width:620px){#hint{top:calc(max(12px,env(safe-area-inset-top)) + 160px)}}
+
+/* ---------- touch scrolling + landscape phones ---------- */
+/* style.css sets touch-action:none on every element (the joystick needs it). A child with "none" blocks a pan that starts on it,
+   so cards inside a scrolling menu could not be dragged. Menus allow vertical panning on every descendant. */
+#start,#start *,#modal,#modal *{touch-action:pan-y}
+#start,#modal,.sbody,.ups,.coll{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.panel.scr{max-height:94vh;max-height:94dvh}
+.sbody{max-height:calc(94vh - 80px);max-height:calc(94dvh - 80px)}
+/* landscape phone (short screen): hub scrolls instead of clipping; menus use the full height */
+@media(max-height:520px){
+  #start{overflow:auto;place-items:start center}
+  .hub2{height:auto;max-height:none;min-height:calc(100dvh - 20px);overflow:visible}
+  .hgap{min-height:34dvh}
+  .hprev{height:min(60dvh,240px)}
+  .panel.scr{max-height:100dvh;padding:8px}
+  .sbody{max-height:calc(100dvh - 64px)}
+}
