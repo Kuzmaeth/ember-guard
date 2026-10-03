@@ -272,3 +272,27 @@ kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 
 .mb small.mg{color:var(--mute)}
 .mb em{font-style:normal;font-size:11px;letter-spacing:1px;color:#ffd24a;margin-left:8px}
 .mck{position:absolute;right:12px;top:10px}.mck .ic{width:20px;height:20px}
+
+/* ---------- results fit on phones (portrait and landscape) ---------- */
+.rtop{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.rgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:620px){.rtop,.rgrid{grid-template-columns:minmax(0,1fr)}}
+.rcard>*{min-width:0}
+.rcoins .cbd{white-space:normal;overflow:visible;text-overflow:clip}
+/* the action row stays pinned to the screen bottom whenever the summary is taller than the screen */
+@media(max-width:620px),(max-height:520px){
+  .res2 .rbtns{position:sticky;bottom:-12px;z-index:3;margin:10px -12px 0;padding:10px 10px max(14px,env(safe-area-inset-bottom));background:var(--s0);border-top:2px solid var(--line);flex-wrap:nowrap;gap:6px;justify-content:center}
+  .res2 .rbtns .btn{padding:8px 10px;font-size:14px;white-space:nowrap}.res2 .rbtns .go-big{flex:1;font-size:18px;padding:10px 8px;min-width:0}
+}
+/* progress explainer */
+.how{display:flex;flex-direction:column;gap:8px;padding:12px;margin-bottom:10px;border-radius:var(--r-md);background:var(--s2);border:2px solid var(--line)}
+.how .gl{font-size:12px;letter-spacing:2px;color:var(--mute)}
+.how>div{display:flex;gap:10px;align-items:flex-start}.how .ic{flex:none;width:22px;height:22px;margin-top:1px}
+.how p{margin:0;font-size:14px;line-height:1.35;color:#d4daf6;font-weight:700}.how p b{color:#fff}
+@media(max-width:420px){
+  .res2 .rbtns{gap:4px;padding-left:6px;padding-right:6px}
+  .res2 .rbtns .btn{padding:8px 7px;font-size:13px;letter-spacing:0}.res2 .rbtns .btn .ic{width:1em;height:1em;margin-right:2px}
+  .res2 .rbtns .go-big{font-size:15px;padding:10px 4px;letter-spacing:0}
+}
+@media(max-width:420px){.res2 .rbtns .btn:not(.go-big) .ic{display:none}.res2 .rbtns .go-big{flex:1 1 0;overflow:hidden;text-overflow:clip}.res2 .rbtns .btn:not(.go-big){flex:none}}
+@media(max-width:620px){.res2{width:100%}}

@@ -36,6 +36,8 @@ Project: `C:\Users\Kuzma Corp\Desktop\guard` (not a git repo). Three.js + vanill
 - Heroes show real name, role (`HEROES[].role`), stats and the exact unlock goal even when locked. Monk = beat Woods boss, Ash = beat Marsh boss, Wren = finish 1 run.
 - Unlock stat keys `won:woods|ashen|marsh` (progress.statVal). Existing saves keep what they already unlocked.
 - Open risk: map and hero unlocks now need boss wins. Check with real players that first boss kills happen early enough.
+- Codex is now "Collection" and Goals is "Progress" (UI text only; code names unchanged). The Progress screen starts with a 4-line "How progress works" card.
+- Results on phones: grids use minmax(0,..) so nothing clips, action row is sticky in portrait and short landscape.
 - Touch scrolling fix: menus override the global `touch-action:none` (ui2.css, bottom).
 
 ## Session 3b: UI v2 (done)

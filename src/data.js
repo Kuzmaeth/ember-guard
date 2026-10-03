@@ -132,7 +132,7 @@ export const ACHIEVEMENTS = [
   { id: 'maxup', name: 'Maxed Out', desc: 'Max out one upgrade track.', stat: 'upMaxed', need: 1, xp: 120 },
   { id: 'heroes3', name: 'Hero Hopper', desc: 'Win with 3 different heroes.', stat: 'heroesWon', need: 3, xp: 200 },
   { id: 'brightkeep', name: 'Bright Keeper', desc: 'Win a run with the fire above 80%.', stat: 'brightWins', need: 1, xp: 120 },
-  { id: 'codex50', name: 'Codex Keeper', desc: 'Complete half of the codex.', stat: 'codexPct', need: 50, xp: 200 },
+  { id: 'codex50', name: 'Collector', desc: 'Complete half of the collection.', stat: 'codexPct', need: 50, xp: 200 },
   { id: 'acct10', name: 'Flame Warden', desc: 'Reach account level 10.', stat: 'acctLvl', need: 10, xp: 150 },
 ];
 

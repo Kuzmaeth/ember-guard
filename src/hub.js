@@ -1,4 +1,4 @@
-// Between-run screens: hub, heroes (live 3D preview), upgrade shop, codex, goals, settings and the run summary.
+// Between-run screens: hub, heroes (live 3D preview), upgrade shop, collection, progress, settings and the run summary.
 // All numbers shown come from the real save (progress.js). Screens are plain DOM; transitions are CSS transform/opacity only.
 import * as A from './audio.js';
 import * as G from './gfx.js';
@@ -28,7 +28,7 @@ const taskRows = (list) => list.map((q, i) => `<div class="task ${q.done ? 'done
 export const tasksHtml = (list) => `<div class="tasks">${taskRows(list)}</div>`;
 function unlockCard(s) {
   const nu = PR.nextUnlock(s);
-  if (!nu) { const pct = PR.codexPct(s); return `<span class="hl">COLLECTION</span><div class="nuw"><span class="nui">${icon('book', '#ffd24a')}</span><div><b>Codex ${pct}%</b><small>Everything is unlocked. Fill the codex and chase your best run.</small></div></div>${bar(pct / 100, 'gold')}`; }
+  if (!nu) { const pct = PR.codexPct(s); return `<span class="hl">COLLECTION</span><div class="nuw"><span class="nui">${icon('book', '#ffd24a')}</span><div><b>Collection ${pct}%</b><small>Everything is unlocked. Fill the codex and chase your best run.</small></div></div>${bar(pct / 100, 'gold')}`; }
   const { u, st: q } = nu, ic = u.type === 'hero' ? 'hero' : u.type === 'area' ? 'tree' : WEAPONS[u.id] ? WEAPONS[u.id].icon : 'star';
   const later = UNLOCKS.filter((x) => x !== u && !s.unlocked[x.id]).map((x) => ({ x, f: PR.unlockState(s, x).frac })).sort((a, b) => b.f - a.f).slice(0, 2);
   return `<span class="hl">NEXT UNLOCK · ${u.type.toUpperCase()}</span><div class="nuw"><span class="nui sil">${icon(ic, '#0b0f22')}</span><div><b>${esc(u.name)}</b><small>${esc(u.sub)}</small></div></div><div class="nuc">${esc(u.label)}<span>${q.have} / ${q.need}</span></div>${bar(q.frac, 'gold')}${later.length ? `<div class="nul"><span class="hl">AFTER THAT</span>${later.map((l) => `<div>${icon('lock', '#8a93c0')} ${esc(l.x.name)} <small>${esc(l.x.label)}</small></div>`).join('')}</div>` : ''}`;
@@ -64,7 +64,7 @@ export function setupAttract() {
       </section>
       <section class="hcard tk" ${st(2)}><span class="hl">TASKS THIS SESSION</span>${tasksHtml(tasks)}</section>
     </div>
-    <nav class="nav2">${navb('heroes', 'hero', 'Heroes')}${navb('up', 'star', 'Upgrades', af)}${navb('codex', 'book', 'Codex')}${navb('goals', 'trophy', 'Goals')}</nav></div>`;
+    <nav class="nav2">${navb('heroes', 'hero', 'Heroes')}${navb('up', 'star', 'Upgrades', af)}${navb('codex', 'book', 'Collection')}${navb('goals', 'trophy', 'Progress')}</nav></div>`;
   const go = (fn) => (e) => { e.stopPropagation(); sfx('click'); fn(); };
   const back = () => setupAttract();
   $('hPlay').onclick = (e) => { e.stopPropagation(); GM.startRun(); };
@@ -199,7 +199,7 @@ export function showCodex(back, tab = 'w') {
   if (tab === 'evo') for (const k in WEAPONS) { const W = WEAPONS[k], seen = !!s.seen.evo[k]; cards += card(seen, W.icon, '#ffd24a', W.evo, esc(W.name) + ' + ' + esc(PASSIVES[W.evoWith].name) + ', transformed.', 'Max ' + W.name + ' (level 5), own ' + PASSIVES[W.evoWith].name + ', pick it on a level-up.', i++); }
   if (tab === 'e') for (let t = 0; t < ET.length; t++) { if (ET[t].boss) continue; const seen = !!s.seen.e[t]; cards += card(seen, 'skull', '#c9b6ff', ET[t].name, 'Health ' + ET[t].hp + ' · Speed ' + ET[t].sp + (ET[t].trait ? '<br>' + esc(ET[t].trait) : '<br>Hits for ' + ET[t].dmg + ', gnaws the fire for ' + ET[t].fd + '/s'), t > 3 ? 'Meets you later in a run.' : 'Survive a little longer to meet it.', i++); }
   if (tab === 'b') for (const k in BOSSES) { const b = BOSSES[k], seen = !!s.seen.b[k]; cards += card(seen, b.icon || 'skull', '#ffb070', b.name, esc(b.desc), b.hint, i++); }
-  screen('Codex', `<div class="cpct"><b>${pct}%</b> complete${bar(pct / 100, 'gold')}</div><div class="tabs">${tabs.map((t) => `<button class="btn ${tab === t[0] ? 'sel' : ''}" data-t="${t[0]}">${t[1]}</button>`).join('')}</div><div class="cdxg">${cards}</div>`, back);
+  screen('Collection', `<div class="cpct"><b>${pct}%</b> complete${bar(pct / 100, 'gold')}</div><div class="tabs">${tabs.map((t) => `<button class="btn ${tab === t[0] ? 'sel' : ''}" data-t="${t[0]}">${t[1]}</button>`).join('')}</div><div class="cdxg">${cards}</div>`, back);
   onAll('[data-t]', (n) => { sfx('click'); closeModal(); showCodex(back, n.dataset.t); });
 }
 
@@ -212,11 +212,16 @@ export function showGoals(back) {
   const done = ACHIEVEMENTS.filter((a) => s.ach[a.id]).length;
   const ach = ACHIEVEMENTS.map((a, i) => { const q = PR.achState(s, a); return `<div class="gl-row ${q.done ? 'done' : ''}" ${st(i)}>${icon(q.done ? 'check' : 'trophy', q.done ? '#8cf29c' : '#9aa6dc')}<div><b>${esc(a.name)}</b><small>${esc(a.desc)} (+${a.xp} XP)</small>${bar(q.frac, q.done ? 'green' : '')}</div><span>${q.have}/${q.need}</span></div>`; }).join('');
   const mastery = Object.keys(HEROES).filter((k) => GM.heroUnlocked(k)).map((k) => { const m = PR.masteryInfo(s, k); return `<div class="gl-row">${icon('hero', '#ffd24a')}<div><b>${esc(HEROES[k].name)}</b><small>Mastery ${m.lvl}${m.max ? ' (max)' : ''}</small>${bar(m.frac, 'gold')}</div><span>${m.lvl}</span></div>`; }).join('');
-  screen('Goals', `<div class="goalcard"><span class="gl">NEXT BEST THING</span><b>${esc(goal.text)}</b>${bar(goal.frac)}</div>
+  screen('Progress', `<div class="how"><span class="gl">HOW PROGRESS WORKS</span>
+      <div>${icon('coin', '#ffc02a')}<p><b>Coins</b> buy Upgrades. Every run earns coins, so each run makes you stronger.</p></div>
+      <div>${icon('crown', '#ffd24a')}<p><b>Level</b> grows with every run. Levels give coins, permanent perks and new weapons.</p></div>
+      <div>${icon('tree', '#4ac38a')}<p><b>Bosses</b> unlock new maps and heroes. Beat a map's boss to move on.</p></div>
+      <div>${icon('star', '#ffd24a')}<p><b>Mastery</b> levels up each hero as you play them: small perks and ember trails.</p></div></div>
+    <div class="goalcard"><span class="gl">NEXT BEST THING</span><b>${esc(goal.text)}</b>${bar(goal.frac)}</div>
     <div class="sec">ACCOUNT RANK · LEVEL ${ac.lvl}</div>${bar(ac.frac, 'gold')}<small class="cap2">${ac.max ? 'Max level' : ac.xp + ' / ' + ac.need + ' XP to level ' + (ac.lvl + 1)}${nextPerkLvl ? ' · Level ' + nextPerkLvl + ' perk: ' + ACCT_PERKS[nextPerkLvl].text : ''}</small>${ranks}
-    <div class="sec">EMBER ROAD (UNLOCKS)</div>${road}
+    <div class="sec">UNLOCKS</div>${road}
     <div class="sec">HERO MASTERY</div>${mastery}
-    <div class="sec">COLLECTION</div><div class="gl-row"><div><b>Codex ${pct}%</b>${bar(pct / 100, 'gold')}</div></div>
+    <div class="sec">COLLECTION</div><div class="gl-row"><div><b>Collection ${pct}%</b>${bar(pct / 100, 'gold')}</div></div>
     <div class="sec">ACHIEVEMENTS ${done} / ${ACHIEVEMENTS.length}</div>${ach}`, back);
 }
 
@@ -257,7 +262,7 @@ export function showResults(r) {
   const peak = r.maxStreak >= 5 ? `<div class="peak" ${st(0)}>${icon('flame', '#ffb347')}<span>Your best moment: a <b>${r.maxStreak} kill streak</b> at ${fmt(r.peakT)}</span></div>` : '';
   const ng = r.nearest;
   const goal = r.win
-    ? `<div class="ngoal win">${icon('crown', '#ffd24a')}<div><span class="hl">DAWN REACHED</span><b>The night is yours, ${esc(r.name)}.</b><small>Try another hero or area, or a Night Pact for more coins.</small></div></div>`
+    ? `<div class="ngoal win">${icon('crown', '#ffd24a')}<div><span class="hl">DAWN REACHED</span><b>The night is yours, ${esc(r.name)}.</b><small>Try another hero or map, or a Night Pact for more coins.</small></div></div>`
     : ng ? `<div class="ngoal">${icon(ng.icon, '#ffd24a')}<div><span class="hl">SO CLOSE</span><b>${esc(ng.text)}</b>${bar(ng.frac, 'gold')}<small>${esc(ng.sub)}</small></div></div>` : '';
   const cbd = r.parts.map((p) => `${esc(p[0].replace(/ \(\d+\)$/, '').toLowerCase())} +${p[1]}`).join(' · ') + (r.questCoins ? ` · tasks +${r.questCoins}` : '');
   const lu = pr.levelUps.map((l) => `<div class="lvu">${icon('crown', '#ffd24a')}<b>Account level ${l.lvl}</b><small>+${l.coins} coins${l.perk ? ' · ' + esc(l.perk) : ''}${l.rank ? ' · rank: ' + esc(l.rank) : ''}</small></div>`).join('');
