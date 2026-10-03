@@ -258,3 +258,17 @@ kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 
   .panel.scr{max-height:100dvh;padding:8px}
   .sbody{max-height:calc(100dvh - 64px)}
 }
+
+/* ---------- maps path + hero role ---------- */
+.hrole{display:inline-block;margin:2px 0 4px;padding:2px 10px;border-radius:99px;background:rgba(255,210,74,.16);color:#ffd24a;font-size:13px;letter-spacing:1px;text-transform:uppercase}
+.mapintro{margin:2px 2px 10px;font-size:15px}
+.maps{display:flex;flex-direction:column;align-items:stretch}
+.marr{text-align:center;color:var(--mute);font-size:12px;line-height:1.1;padding:3px 0}
+.mapc{position:relative;display:flex;align-items:center;gap:12px;padding:12px;min-height:84px;text-align:left;border-radius:var(--r-md);background:var(--s2);border:2px solid var(--line);color:var(--ink)}
+.mapc.sel{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.35)}.mapc.lock{opacity:.75}
+.mn1{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#0b0f22;border:2px solid var(--line);font-size:16px}
+.mapc.sel .mn1{background:#ffd24a;color:#2b1000;border-color:#fff3c0}
+.mb{display:flex;flex-direction:column;gap:3px;min-width:0}.mb b{font-size:17px}.mb small{font-size:13px;color:#c6cdf0;font-weight:700;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.mb small .ic{width:1em;height:1em}
+.mb small.mg{color:var(--mute)}
+.mb em{font-style:normal;font-size:11px;letter-spacing:1px;color:#ffd24a;margin-left:8px}
+.mck{position:absolute;right:12px;top:10px}.mck .ic{width:20px;height:20px}

@@ -15,7 +15,6 @@ const $ = (id) => document.getElementById(id);
 const sfx = (n) => { A.init(); A.sfx(n); };
 const bar = (f, cls = '') => `<div class="xpb ${cls}"><i style="transform:scaleX(${Math.max(0, Math.min(1, f))})"></i></div>`;
 const st = (i) => `style="--i:${i}"`;
-const AREA_ORDER = () => Object.keys(AREAS);
 
 function screen(title, body, back, cls = '') {
   G.previewClose(); modalEl().classList.remove('clear'); UI.startEl().classList.add('off');
@@ -60,7 +59,7 @@ export function setupAttract() {
       <section class="hcard nu" ${st(0)}>${unlockCard(s)}</section>
       <section class="hcard playc" ${st(1)}>
         <button class="tap play" id="hPlay">${icon('play', '#2b1000')} PLAY</button>
-        <div class="loadout"><button class="chip" id="cHero">${icon('hero', '#ffd24a')}<span><small>HERO</small>${esc(hero.name)}</span></button><button class="chip" id="cArea">${icon('tree', '#4ac38a')}<span><small>AREA</small>${esc(AREAS[s.area].name)}</span></button>${s.unlocked.pacts ? `<button class="chip" id="cPact">${icon('skull', '#b48cff')}<span><small>NIGHT PACT</small>${s.pact && PACTS[s.pact] ? esc(PACTS[s.pact].name) : 'None'}</span></button>` : ''}</div>
+        <div class="loadout"><button class="chip" id="cHero">${icon('hero', '#ffd24a')}<span><small>HERO</small>${esc(hero.name)}</span></button><button class="chip" id="cArea">${icon('tree', '#4ac38a')}<span><small>MAP</small>${esc(AREAS[s.area].name)}</span></button>${s.unlocked.pacts ? `<button class="chip" id="cPact">${icon('skull', '#b48cff')}<span><small>NIGHT PACT</small>${s.pact && PACTS[s.pact] ? esc(PACTS[s.pact].name) : 'None'}</span></button>` : ''}</div>
         ${af ? `<button class="afl" id="cAfford">${icon('star', '#ffd24a')} You can afford ${af} upgrade${af > 1 ? 's' : ''}</button>` : ''}
       </section>
       <section class="hcard tk" ${st(2)}><span class="hl">TASKS THIS SESSION</span>${tasksHtml(tasks)}</section>
@@ -70,7 +69,7 @@ export function setupAttract() {
   const back = () => setupAttract();
   $('hPlay').onclick = (e) => { e.stopPropagation(); GM.startRun(); };
   $('t_heroes').onclick = $('cHero').onclick = go(() => showHeroes(back));
-  $('cArea').onclick = go(() => showHeroes(back, null, true));
+  $('cArea').onclick = go(() => showMaps(back));
   if ($('cPact')) $('cPact').onclick = go(() => showPacts(back));
   $('t_up').onclick = go(() => showShop(back)); if ($('cAfford')) $('cAfford').onclick = go(() => showShop(back));
   $('t_codex').onclick = go(() => showCodex(back));
@@ -87,10 +86,10 @@ function heroStatsHtml(h) {
   if (h.fireMax) extra.push('+' + Math.round(h.fireMax * 100) + '% fire capacity');
   return row('Health', h.hp / 150, h.hp) + row('Speed', h.speed / 7, h.speed.toFixed(1)) + `<div class="hstat"><span>Trait</span><small class="tr">${esc(h.trait || (extra.join(', ') || 'Balanced, no weakness'))}</small></div>`;
 }
-export function showHeroes(back, start, focusArea) {
+export function showHeroes(back, start) {
   const keys = Object.keys(HEROES);
   let idx = Math.max(0, keys.indexOf(start || S().hero));
-  screen('Heroes', `<div class="hs"><div class="hp-wrap"><div class="hprev" id="hPrev"></div><button class="btn nv l" id="hL" aria-label="Previous hero">${icon('back')}</button><button class="btn nv r" id="hR" aria-label="Next hero">${icon('fwd')}</button><div class="hdots" id="hDots"></div></div><div class="hinfo" id="hInfo"></div></div><div class="sec">AREA</div><div class="areas" id="hAreas"></div>`, back, 'wide hero');
+  screen('Heroes', `<div class="hs"><div class="hp-wrap"><div class="hprev" id="hPrev"></div><button class="btn nv l" id="hL" aria-label="Previous hero">${icon('back')}</button><button class="btn nv r" id="hR" aria-label="Next hero">${icon('fwd')}</button><div class="hdots" id="hDots"></div></div><div class="hinfo" id="hInfo"></div></div>`, back, 'wide hero');
   modalEl().classList.add('clear'); // the preview is drawn into the canvas behind this transparent window
   G.previewOpen($('hPrev'));
   const render = () => {
@@ -100,11 +99,11 @@ export function showHeroes(back, start, focusArea) {
     let html;
     if (!un) {
       const q = u ? PR.unlockState(s, u) : { have: 0, need: 1, frac: 0 };
-      html = `<h3>???</h3><div class="hd">A hidden hero.</div><div class="ulk">${icon('lock', '#9aa6dc')}<b>${u ? esc(u.label) : 'Locked'}</b>${bar(q.frac)}<small>${q.have} / ${q.need}</small></div>`;
+      html = `<h3>${esc(h.name)}</h3><div class="hrole">${esc(h.role || '')}</div><div class="hd">${esc(h.desc)}</div>${heroStatsHtml(h)}<div class="ulk">${icon('lock', '#9aa6dc')}<small>TO UNLOCK</small><b>${u ? esc(u.label) : 'Locked'}</b>${bar(q.frac)}<small>${q.have} / ${q.need}</small></div>`;
     } else {
       const w = WEAPONS[h.weapon], nxP = Object.keys(MASTERY_PERKS).map(Number).find((l) => l > m.lvl), nxC = Object.keys(COSMETICS).map(Number).find((l) => l > m.lvl);
       const cos = PR.unlockedCosmetics(s, k), act = PR.activeTrail(s, k);
-      html = `<h3>${esc(h.name)}</h3><div class="hd">${esc(h.desc)}</div>
+      html = `<h3>${esc(h.name)}</h3><div class="hrole">${esc(h.role || '')}</div><div class="hd">${esc(h.desc)}</div>
         <div class="hw">${icon(w.icon, w.col)}<span>Starts with <b>${esc(w.name)}</b></span></div>
         ${heroStatsHtml(h)}
         <div class="mast"><div class="mh"><span>${icon('star', '#ffd24a')} Mastery ${m.lvl}${m.max ? ' (max)' : ''}</span><small>${m.max ? 'Max' : m.into + ' / ' + m.need + ' XP'}</small></div>${bar(m.frac, 'gold')}
@@ -115,12 +114,6 @@ export function showHeroes(back, start, focusArea) {
     $('hInfo').innerHTML = html;
     const sel = $('hSel'); if (sel) sel.onclick = () => { sfx('confirm'); GM.selectHero(k); GM.previewHero(); render(); };
     document.querySelectorAll('[data-c]').forEach((n) => { n.onclick = () => { sfx('click'); GM.setCosmetic(k, n.dataset.c); render(); }; });
-    // areas
-    $('hAreas').innerHTML = AREA_ORDER().map((a) => {
-      const aun = GM.areaUnlocked(a), au = UNLOCKS.find((x) => x.id === a), q = au ? PR.unlockState(s, au) : null;
-      return `<button class="area ${aun ? '' : 'lock'} ${s.area === a ? 'sel' : ''}" data-a="${a}">${icon(aun ? 'tree' : 'lock', aun ? '#4ac38a' : '#8a93bd')}<span>${aun ? esc(AREAS[a].name) : '???'}${s.area === a ? '<em>SELECTED</em>' : ''}<small>${aun ? esc(AREAS[a].blurb || '') : esc(au ? au.label + ' (' + q.have + '/' + q.need + ')' : 'Locked')}</small></span></button>`;
-    }).join('');
-    document.querySelectorAll('[data-a]').forEach((n) => { n.onclick = () => { if (!GM.areaUnlocked(n.dataset.a)) { sfx('hurt'); return; } sfx('click'); GM.selectArea(n.dataset.a); GM.previewArea(); render(); }; });
   };
   const move = (d) => { idx = (idx + d + keys.length) % keys.length; sfx('click'); render(); };
   $('hL').onclick = () => move(-1); $('hR').onclick = () => move(1);
@@ -128,7 +121,25 @@ export function showHeroes(back, start, focusArea) {
   pv.addEventListener('pointerdown', (e) => { sx = e.clientX; });
   pv.addEventListener('pointerup', (e) => { if (sx != null && Math.abs(e.clientX - sx) > 40) move(e.clientX < sx ? 1 : -1); sx = null; });
   render();
-  if (focusArea) $('hAreas').scrollIntoView({ block: 'center' });
+}
+
+/* ---------------- maps ---------------- */
+// A map is a step on a path. Beat its boss to unlock the next one. Each map has its own boss and hazard.
+export function showMaps(back) {
+  const keys = Object.keys(AREAS).sort((a, b) => AREAS[a].step - AREAS[b].step);
+  const render = () => {
+    const s = S();
+    $('mapList').innerHTML = keys.map((a, i) => {
+      const A_ = AREAS[a], un = GM.areaUnlocked(a), u = UNLOCKS.find((x) => x.id === a), q = u ? PR.unlockState(s, u) : null, cleared = !!(s.stats.wonArea || {})[a], boss = BOSSES[A_.boss];
+      const tag = s.area === a ? 'SELECTED' : cleared ? 'CLEARED' : un ? 'NEW' : '';
+      return `<button class="mapc ${un ? '' : 'lock'} ${s.area === a ? 'sel' : ''}" data-a="${a}"><span class="mn1">${i + 1}</span><span class="mb"><b>${esc(A_.name)}${tag ? `<em>${tag}</em>` : ''}</b>
+        <small>${icon('skull', '#ff8a6a')} Boss: ${esc(boss.name)}</small><small>${icon('flame', '#ffb04a')} ${esc(A_.hazardText)}</small>
+        <small class="mg">${un ? esc(A_.blurb) : icon('lock', '#9aa6dc') + ' To unlock: ' + esc(u ? u.label : 'Locked')}</small></span>${cleared ? `<span class="mck">${icon('check', '#7dffa0')}</span>` : ''}</button>`;
+    }).join('<div class="marr">\u25BC</div>');
+    document.querySelectorAll('[data-a]').forEach((n) => { n.onclick = () => { if (!GM.areaUnlocked(n.dataset.a)) { sfx('hurt'); return; } sfx('click'); GM.selectArea(n.dataset.a); GM.previewArea(); render(); }; });
+  };
+  screen('Maps', `<div class="hd mapintro">Beat a map's boss to unlock the next map. Pick where to play.</div><div id="mapList" class="maps"></div>`, back, '');
+  render();
 }
 
 /* ---------------- night pacts ---------------- */

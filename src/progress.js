@@ -87,6 +87,7 @@ export function statVal(s, key) {
   switch (key) {
     case 'acctLvl': return acctInfo(s).lvl;
     case 'codexPct': return codexPct(s);
+    case 'won:woods': case 'won:ashen': case 'won:marsh': return (s.stats.wonArea || {})[key.slice(4)] ? 1 : 0;
     case 'heroesWon': return Object.keys(s.stats.won || {}).length;
     case 'upMaxed': { let n = 0; for (const k in UPGRADES) if ((s.up[k] | 0) >= UP_MAX) n++; return n; }
     default: return s.stats[key] | 0;
@@ -134,6 +135,7 @@ export function awardRun(s, run) {
   const a1 = acctInfo(s), levelUps = [];
   for (let l = a0.lvl + 1; l <= a1.lvl; l++) { const c = acctReward(l); s.coins += c; levelUps.push({ lvl: l, coins: c, perk: ACCT_PERKS[l] ? ACCT_PERKS[l].text : null, rank: RANKS.find((r) => r[0] === l) ? rankOf(l) : null }); }
   const newUnlocks2 = evalUnlocks(s); // account level may have crossed an unlock threshold
+  for (const u of newUnlocks.concat(newUnlocks2)) if (u.type === 'area') s.area = u.id; // PLAY goes to the newest map
   const m1 = masteryInfo(s, run.hero), mastUps = [];
   for (let l = m0.lvl + 1; l <= m1.lvl; l++) mastUps.push({ lvl: l, perk: MASTERY_PERKS[l] ? MASTERY_PERKS[l].text : null, cos: COSMETICS[l] ? COSMETICS[l].name : null });
   return { xpGain, mGain, a0, a1, levelUps, m0, m1, mastUps, newUnlocks: newUnlocks.concat(newUnlocks2), newAch, rankUp: a1.rank !== a0.rank ? a1.rank : null };
