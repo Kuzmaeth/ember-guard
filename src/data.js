@@ -2,19 +2,19 @@
 
 export const AREAS = {
   woods: {
-    hazard: null, boss: 'drake',
+    hazard: null, boss: 'drake', hazardText: 'No hazards', step: 1,
     name: 'Whispering Woods', blurb: 'Cool blue night', ground: [[0.14, 0.3, 0.18], [0.1, 0.22, 0.17], [0.17, 0.33, 0.2]], dirt: [0.45, 0.28, 0.14],
     tree: [[0.07, 0.27, 0.2], [0.08, 0.2, 0.19], [0.1, 0.3, 0.17]], trunk: [0.2, 0.12, 0.08], rock: [0.2, 0.24, 0.3],
     amb: [0.4, 0.54, 0.8], moon: [0.34, 0.52, 0.9], fog: [0.05, 0.09, 0.17], ember: [1, 0.7, 0.25], fly: [0.7, 1, 0.4], dead: false,
   },
   ashen: {
-    hazard: 'geyser', boss: 'warden',
+    hazard: 'geyser', boss: 'warden', hazardText: 'Ember geysers', step: 2,
     name: 'Ashen Hollow', blurb: 'Red ember night', ground: [[0.3, 0.2, 0.2], [0.22, 0.15, 0.16], [0.34, 0.22, 0.19]], dirt: [0.45, 0.18, 0.09],
     tree: [[0.2, 0.14, 0.14], [0.15, 0.1, 0.11], [0.26, 0.15, 0.13]], trunk: [0.16, 0.1, 0.1], rock: [0.3, 0.2, 0.2],
     amb: [0.45, 0.28, 0.38], moon: [0.65, 0.35, 0.42], fog: [0.14, 0.06, 0.08], ember: [1, 0.4, 0.15], fly: [1, 0.45, 0.2], dead: true,
   },
   marsh: {
-    hazard: 'puddle', boss: 'drake', name: 'Frostmere Marsh', blurb: 'Misty teal night, slow puddles',
+    hazard: 'puddle', boss: 'drake', hazardText: 'Slow puddles', step: 3, name: 'Frostmere Marsh', blurb: 'Misty teal night, slow puddles',
     ground: [[0.1, 0.27, 0.28], [0.08, 0.2, 0.24], [0.13, 0.31, 0.31]], dirt: [0.34, 0.32, 0.22],
     tree: [[0.06, 0.26, 0.26], [0.07, 0.2, 0.25], [0.09, 0.29, 0.27]], trunk: [0.16, 0.14, 0.11], rock: [0.22, 0.28, 0.34],
     amb: [0.36, 0.6, 0.8], moon: [0.3, 0.6, 0.95], fog: [0.04, 0.13, 0.19], ember: [0.8, 0.95, 1], fly: [0.6, 1, 0.9], dead: false,
@@ -23,10 +23,10 @@ export const AREAS = {
 };
 
 export const HEROES = {
-  warden: { start: true, name: 'Warden', desc: 'Steady lantern-bearer. Starts with Ember Bolt.', hp: 100, speed: 5.4, weapon: 'bolt', crit: 0, fireRegen: 0, fireMax: 0, cloak: [0.75, 0.15, 0.15], tunic: [0.2, 0.32, 0.75], hat: 0 },
-  wren: { name: 'Ranger Wren', desc: 'Fast and fragile. Starts with the Bow. +10% crit.', hp: 80, speed: 6.1, weapon: 'bow', crit: 0.1, fireRegen: 0, fireMax: 0, cloak: [0.2, 0.5, 0.25], tunic: [0.25, 0.4, 0.2], hat: 1 },
-  monk: { name: 'Cinder Monk', desc: 'Slow and sturdy. Starts with Ember Nova. Fire regrows faster.', hp: 135, speed: 4.9, weapon: 'nova', crit: 0, fireRegen: 1.2, fireMax: 0.1, cloak: [0.85, 0.4, 0.1], tunic: [0.5, 0.2, 0.1], hat: 2 },
-  ash: { name: 'Lantern Witch Ash', desc: 'Frail but bright. Starts with Cinder Wisps. Kills in the dark feed the fire.', hp: 85, speed: 5.7, weapon: 'wisp', crit: 0.05, fireRegen: 0, fireMax: 0, darkFeed: 2.2, trait: 'Kills in the dark restore 2x fire; her wisps carry light', cloak: [0.45, 0.2, 0.65], tunic: [0.3, 0.2, 0.5], hat: 3 },
+  warden: { role: 'All-rounder', start: true, name: 'Warden', desc: 'Steady lantern-bearer. Starts with Ember Bolt.', hp: 100, speed: 5.4, weapon: 'bolt', crit: 0, fireRegen: 0, fireMax: 0, cloak: [0.75, 0.15, 0.15], tunic: [0.2, 0.32, 0.75], hat: 0 },
+  wren: { role: 'Fast archer', name: 'Ranger Wren', desc: 'Fast and fragile. Starts with the Bow. +10% crit.', hp: 80, speed: 6.1, weapon: 'bow', crit: 0.1, fireRegen: 0, fireMax: 0, cloak: [0.2, 0.5, 0.25], tunic: [0.25, 0.4, 0.2], hat: 1 },
+  monk: { role: 'Tank', name: 'Cinder Monk', desc: 'Slow and sturdy. Starts with Ember Nova. Fire regrows faster.', hp: 135, speed: 4.9, weapon: 'nova', crit: 0, fireRegen: 1.2, fireMax: 0.1, cloak: [0.85, 0.4, 0.1], tunic: [0.5, 0.2, 0.1], hat: 2 },
+  ash: { role: 'Light mage', name: 'Lantern Witch Ash', desc: 'Frail but bright. Starts with Cinder Wisps. Kills in the dark feed the fire.', hp: 85, speed: 5.7, weapon: 'wisp', crit: 0.05, fireRegen: 0, fireMax: 0, darkFeed: 2.2, trait: 'Kills in the dark restore 2x fire; her wisps carry light', cloak: [0.45, 0.2, 0.65], tunic: [0.3, 0.2, 0.5], hat: 3 },
 };
 
 // Weapon base tables, indexed by level-1.
@@ -81,13 +81,13 @@ export const upCost = (id, lvl) => Math.round(UPGRADES[id].base * (1 + lvl * 0.9
 export const UNLOCKS = [
   { id: 'wren', type: 'hero', name: 'Ranger Wren', sub: 'Fast archer. Starts with the Bow.', stat: 'runs', need: 1, label: 'Finish 1 run' },
   { id: 'bomb', type: 'weapon', name: 'Powder Bomb', sub: 'Joins the level-up pool.', stat: 'runs', need: 2, label: 'Finish 2 runs' },
-  { id: 'monk', type: 'hero', name: 'Cinder Monk', sub: 'Sturdy. Starts with Ember Nova.', stat: 'acctLvl', need: 4, label: 'Reach account level 4' },
-  { id: 'ashen', type: 'area', name: 'Ashen Hollow', sub: 'Redder night, new boss, ember geysers.', stat: 'acctLvl', need: 5, label: 'Reach account level 5' },
+  { id: 'monk', type: 'hero', name: 'Cinder Monk', sub: 'Sturdy. Starts with Ember Nova.', stat: 'won:woods', need: 1, label: 'Beat The Cinder Drake in Whispering Woods' },
+  { id: 'ashen', type: 'area', name: 'Ashen Hollow', sub: 'Map 2: new boss, ember geysers.', stat: 'won:woods', need: 1, label: 'Beat The Cinder Drake in Whispering Woods' },
   { id: 'whip', type: 'weapon', name: 'Ash Whip', sub: 'Joins the level-up pool.', stat: 'acctLvl', need: 3, label: 'Reach account level 3' },
   { id: 'mine', type: 'weapon', name: 'Spark Mines', sub: 'Joins the level-up pool.', stat: 'acctLvl', need: 6, label: 'Reach account level 6' },
-  { id: 'ash', type: 'hero', name: 'Lantern Witch Ash', sub: 'Starts with Cinder Wisps.', stat: 'bossKills', need: 1, label: 'Defeat a boss' },
+  { id: 'ash', type: 'hero', name: 'Lantern Witch Ash', sub: 'Starts with Cinder Wisps.', stat: 'won:marsh', need: 1, label: 'Beat The Cinder Drake in Frostmere Marsh' },
   { id: 'beacon', type: 'weapon', name: 'Beacon', sub: 'Joins the level-up pool.', stat: 'acctLvl', need: 9, label: 'Reach account level 9' },
-  { id: 'marsh', type: 'area', name: 'Frostmere Marsh', sub: 'Misty night, slow puddles.', stat: 'acctLvl', need: 10, label: 'Reach account level 10' },
+  { id: 'marsh', type: 'area', name: 'Frostmere Marsh', sub: 'Map 3: misty night, slow puddles.', stat: 'won:ashen', need: 1, label: 'Beat The Ashen Warden in Ashen Hollow' },
   { id: 'pacts', type: 'feature', name: 'Night Pacts', sub: 'Risk and reward modifiers for your runs.', stat: 'acctLvl', need: 3, label: 'Reach account level 3' },
 ];
 
@@ -132,7 +132,7 @@ export const ACHIEVEMENTS = [
   { id: 'maxup', name: 'Maxed Out', desc: 'Max out one upgrade track.', stat: 'upMaxed', need: 1, xp: 120 },
   { id: 'heroes3', name: 'Hero Hopper', desc: 'Win with 3 different heroes.', stat: 'heroesWon', need: 3, xp: 200 },
   { id: 'brightkeep', name: 'Bright Keeper', desc: 'Win a run with the fire above 80%.', stat: 'brightWins', need: 1, xp: 120 },
-  { id: 'codex50', name: 'Codex Keeper', desc: 'Complete half of the codex.', stat: 'codexPct', need: 50, xp: 200 },
+  { id: 'codex50', name: 'Collector', desc: 'Complete half of the collection.', stat: 'codexPct', need: 50, xp: 200 },
   { id: 'acct10', name: 'Flame Warden', desc: 'Reach account level 10.', stat: 'acctLvl', need: 10, xp: 150 },
 ];
 

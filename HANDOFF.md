@@ -31,6 +31,15 @@ Project: `C:\Users\Kuzma Corp\Desktop\guard` (not a git repo). Three.js + vanill
   - (b) An analytics path for real retry and session data, which needs a privacy text change.
   - (c) Whether to loosen the death-clock caps.
 
+## Session 4: simpler heroes and maps (done)
+- Maps are a path (`AREAS[].step`): Woods -> Ashen Hollow (beat the Drake in Woods) -> Marsh (beat the Warden in Ashen). New `showMaps` screen in hub.js; the Heroes screen now only shows heroes. PLAY auto-selects a newly unlocked map (`awardRun`).
+- Heroes show real name, role (`HEROES[].role`), stats and the exact unlock goal even when locked. Monk = beat Woods boss, Ash = beat Marsh boss, Wren = finish 1 run.
+- Unlock stat keys `won:woods|ashen|marsh` (progress.statVal). Existing saves keep what they already unlocked.
+- Open risk: map and hero unlocks now need boss wins. Check with real players that first boss kills happen early enough.
+- Codex is now "Collection" and Goals is "Progress" (UI text only; code names unchanged). The Progress screen starts with a 4-line "How progress works" card.
+- Results on phones: grids use minmax(0,..) so nothing clips, action row is sticky in portrait and short landscape.
+- Touch scrolling fix: menus override the global `touch-action:none` (ui2.css, bottom).
+
 ## Session 3b: UI v2 (done)
 - `src/ui2.css` overrides `style.css`: solid surfaces, tokens `--s0..s3`, `--line`, `--mute`, 12 px type floor. New UI goes there; `style.css` is the old base.
 - `hub.js`:

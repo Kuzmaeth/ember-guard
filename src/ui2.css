@@ -241,3 +241,58 @@ kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 
 /* tips sit below the boss / champion bar */
 #hint{top:calc(max(14px,env(safe-area-inset-top)) + 132px)}
 @media(max-width:620px){#hint{top:calc(max(12px,env(safe-area-inset-top)) + 160px)}}
+
+/* ---------- touch scrolling + landscape phones ---------- */
+/* style.css sets touch-action:none on every element (the joystick needs it). A child with "none" blocks a pan that starts on it,
+   so cards inside a scrolling menu could not be dragged. Menus allow vertical panning on every descendant. */
+#start,#start *,#modal,#modal *{touch-action:pan-y}
+#start,#modal,.sbody,.ups,.coll{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.panel.scr{max-height:94vh;max-height:94dvh}
+.sbody{max-height:calc(94vh - 80px);max-height:calc(94dvh - 80px)}
+/* landscape phone (short screen): hub scrolls instead of clipping; menus use the full height */
+@media(max-height:520px){
+  #start{overflow:auto;place-items:start center}
+  .hub2{height:auto;max-height:none;min-height:calc(100dvh - 20px);overflow:visible}
+  .hgap{min-height:34dvh}
+  .hprev{height:min(60dvh,240px)}
+  .panel.scr{max-height:100dvh;padding:8px}
+  .sbody{max-height:calc(100dvh - 64px)}
+}
+
+/* ---------- maps path + hero role ---------- */
+.hrole{display:inline-block;margin:2px 0 4px;padding:2px 10px;border-radius:99px;background:rgba(255,210,74,.16);color:#ffd24a;font-size:13px;letter-spacing:1px;text-transform:uppercase}
+.mapintro{margin:2px 2px 10px;font-size:15px}
+.maps{display:flex;flex-direction:column;align-items:stretch}
+.marr{text-align:center;color:var(--mute);font-size:12px;line-height:1.1;padding:3px 0}
+.mapc{position:relative;display:flex;align-items:center;gap:12px;padding:12px;min-height:84px;text-align:left;border-radius:var(--r-md);background:var(--s2);border:2px solid var(--line);color:var(--ink)}
+.mapc.sel{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.35)}.mapc.lock{opacity:.75}
+.mn1{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#0b0f22;border:2px solid var(--line);font-size:16px}
+.mapc.sel .mn1{background:#ffd24a;color:#2b1000;border-color:#fff3c0}
+.mb{display:flex;flex-direction:column;gap:3px;min-width:0}.mb b{font-size:17px}.mb small{font-size:13px;color:#c6cdf0;font-weight:700;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.mb small .ic{width:1em;height:1em}
+.mb small.mg{color:var(--mute)}
+.mb em{font-style:normal;font-size:11px;letter-spacing:1px;color:#ffd24a;margin-left:8px}
+.mck{position:absolute;right:12px;top:10px}.mck .ic{width:20px;height:20px}
+
+/* ---------- results fit on phones (portrait and landscape) ---------- */
+.rtop{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.rgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:620px){.rtop,.rgrid{grid-template-columns:minmax(0,1fr)}}
+.rcard>*{min-width:0}
+.rcoins .cbd{white-space:normal;overflow:visible;text-overflow:clip}
+/* the action row stays pinned to the screen bottom whenever the summary is taller than the screen */
+@media(max-width:620px),(max-height:520px){
+  .res2 .rbtns{position:sticky;bottom:-12px;z-index:3;margin:10px -12px 0;padding:10px 10px max(14px,env(safe-area-inset-bottom));background:var(--s0);border-top:2px solid var(--line);flex-wrap:nowrap;gap:6px;justify-content:center}
+  .res2 .rbtns .btn{padding:8px 10px;font-size:14px;white-space:nowrap}.res2 .rbtns .go-big{flex:1;font-size:18px;padding:10px 8px;min-width:0}
+}
+/* progress explainer */
+.how{display:flex;flex-direction:column;gap:8px;padding:12px;margin-bottom:10px;border-radius:var(--r-md);background:var(--s2);border:2px solid var(--line)}
+.how .gl{font-size:12px;letter-spacing:2px;color:var(--mute)}
+.how>div{display:flex;gap:10px;align-items:flex-start}.how .ic{flex:none;width:22px;height:22px;margin-top:1px}
+.how p{margin:0;font-size:14px;line-height:1.35;color:#d4daf6;font-weight:700}.how p b{color:#fff}
+@media(max-width:420px){
+  .res2 .rbtns{gap:4px;padding-left:6px;padding-right:6px}
+  .res2 .rbtns .btn{padding:8px 7px;font-size:13px;letter-spacing:0}.res2 .rbtns .btn .ic{width:1em;height:1em;margin-right:2px}
+  .res2 .rbtns .go-big{font-size:15px;padding:10px 4px;letter-spacing:0}
+}
+@media(max-width:420px){.res2 .rbtns .btn:not(.go-big) .ic{display:none}.res2 .rbtns .go-big{flex:1 1 0;overflow:hidden;text-overflow:clip}.res2 .rbtns .btn:not(.go-big){flex:none}}
+@media(max-width:620px){.res2{width:100%}}
