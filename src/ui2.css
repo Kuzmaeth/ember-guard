@@ -296,3 +296,6 @@ kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 
 }
 @media(max-width:420px){.res2 .rbtns .btn:not(.go-big) .ic{display:none}.res2 .rbtns .go-big{flex:1 1 0;overflow:hidden;text-overflow:clip}.res2 .rbtns .btn:not(.go-big){flex:none}}
 @media(max-width:620px){.res2{width:100%}}
+
+.ver{align-self:center;margin:2px 0 4px;font-size:11px;color:var(--mute);letter-spacing:.5px;text-align:center}
+.ver.stale{min-height:44px;padding:8px 16px;border-radius:99px;background:#ffd24a;color:#2b1000;font-size:14px;border:0}
