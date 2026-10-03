@@ -11,6 +11,15 @@ let GM = null;
 const modalEl = () => document.getElementById('modal');
 export function bind(g) { GM = g; UI.setCloseHook(() => { G.previewClose(); modalEl().classList.remove('clear'); }); }
 const S = () => GM.save();
+/* Build label + stale-copy check: tells the player which build they run and offers a reload when a newer one is live. */
+const BUILD = typeof __BUILD__ === 'string' ? __BUILD__ : 'dev';
+let stale = false;
+export function checkVersion() {
+  if (BUILD === 'dev' || stale) return;
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j && j.build && j.build !== BUILD) { stale = true; const el = document.getElementById('verTag'); if (el) el.outerHTML = verHtml(); const b = document.getElementById('verTag'); if (b) b.onclick = reloadNow; } }).catch(() => {});
+}
+const reloadNow = (e) => { if (e) e.stopPropagation(); location.reload(); };
+const verHtml = () => stale ? `<button class="ver stale" id="verTag">New version available. Tap to reload</button>` : `<div class="ver" id="verTag">build ${esc(BUILD)}</div>`;
 const $ = (id) => document.getElementById(id);
 const sfx = (n) => { A.init(); A.sfx(n); };
 const bar = (f, cls = '') => `<div class="xpb ${cls}"><i style="transform:scaleX(${Math.max(0, Math.min(1, f))})"></i></div>`;
@@ -64,7 +73,9 @@ export function setupAttract() {
       </section>
       <section class="hcard tk" ${st(2)}><span class="hl">TASKS THIS SESSION</span>${tasksHtml(tasks)}</section>
     </div>
-    <nav class="nav2">${navb('heroes', 'hero', 'Heroes')}${navb('up', 'star', 'Upgrades', af)}${navb('codex', 'book', 'Collection')}${navb('goals', 'trophy', 'Progress')}</nav></div>`;
+    <nav class="nav2">${navb('heroes', 'hero', 'Heroes')}${navb('up', 'star', 'Upgrades', af)}${navb('codex', 'book', 'Collection')}${navb('goals', 'trophy', 'Progress')}</nav>${verHtml()}</div>`;
+  if ($('verTag') && stale) $('verTag').onclick = reloadNow;
+  checkVersion();
   const go = (fn) => (e) => { e.stopPropagation(); sfx('click'); fn(); };
   const back = () => setupAttract();
   $('hPlay').onclick = (e) => { e.stopPropagation(); GM.startRun(); };
