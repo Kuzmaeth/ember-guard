@@ -137,7 +137,7 @@ const ECAP = [MAXE, MAXE, 150, 160, 48, 120, 100, 100, 100, 16]; // instance cap
 function buildMeshes() {
   const lit = makeLit(true, false);
   I = {};
-  I.hero = makeInst(G.heroGeo(hero), makeLit(true, false, true), 1, true, true);
+  I.hero = makeInst(G.heroGeo(hero), makeLit(true, false, true, false, true), 1, true, true);
   I.en = [];
   for (let t = 0; t < G.enemyGeo.length; t++) { const g = G.enemyGeo[t](); I.en.push(makeInst(g, lit, ECAP[t], true, true)); }
   I.boss = makeInst(G.bossGeo(), lit, 1, true, true);
@@ -160,7 +160,7 @@ function prewarm() {
 }
 function rebuildHero() {
   G.scene.remove(I.hero.mesh); I.hero.mesh.geometry.dispose();
-  I.hero = makeInst(G.heroGeo(hero), makeLit(true, false, true), 1, true, true); G.scene.add(I.hero.mesh);
+  I.hero = makeInst(G.heroGeo(hero), makeLit(true, false, true, false, true), 1, true, true); G.scene.add(I.hero.mesh);
 }
 
 /* ---------------- helpers ---------------- */
@@ -1394,7 +1394,7 @@ export function questsNow() { const run = phase === 'run' || phase === 'paused' 
 export function buildNow() { return { w: wOwned.map((id) => ({ name: WEAPONS[id].name, icon: WEAPONS[id].icon, col: WEAPONS[id].col, lv: wLv[id], evo: wEvo[id], loan: isLoan(id) })), p: Object.keys(PASSIVES).filter((k) => pl[k] > 0).map((k) => ({ name: PASSIVES[k].name, icon: PASSIVES[k].icon, col: PASSIVES[k].col, lv: pl[k] })), t: R_.t, kills: R_.kills, lvl: R_.lvl }; }
 
 /* ---------------- render ---------------- */
-let fpsAcc = 0, fpsN = 0, settle = 4, fpsOk = 0;
+let fpsAcc = 0, fpsN = 0, settle = 4, fpsOk = 0, rFace = 0, rMv = 0;
 const tmpC = { r: 0, g: 0, b: 0 };
 function updateMood() {
   const m = A.mood, fr = F.hp / F.max;
@@ -1405,12 +1405,20 @@ function render(rdt, alpha) {
   const hx = H.px + (H.x - H.px) * alpha, hz = H.pz + (H.z - H.pz) * alpha;
   const fr = F.hp / F.max;
   // hero
-  const sq = 1 + H.squash * 0.2, bob = Math.abs(Math.sin(H.bob)) * 0.12 * H.mv;
+  // smoothed render-side pose: eased facing and move amount, so turns and starts/stops blend instead of snapping
+  const ek = 1 - Math.exp(-rdt * 14), em_ = 1 - Math.exp(-rdt * 9);
+  let dfa = H.face - rFace; dfa -= Math.round(dfa / 6.2832) * 6.2832; rFace += dfa * ek;
+  rMv += (Math.min(1.3, H.mv) - rMv) * em_;
+  const sq = 1 + H.squash * 0.2, bob = Math.abs(Math.sin(H.bob)) * 0.1 * rMv;
   const SH = fx.shadow; let shn = 0; const hgy = G.groundY(hx, hz);
-  wM(I.hero.m, 0, hx, hgy + bob, hz, H.face, sq * 1.15, 1.15 / sq, sq * 1.15);
+  wM(I.hero.m, 0, hx, hgy + bob, hz, rFace, sq * 1.15, 1.15 / sq, sq * 1.15);
+  { // forward lean into the run and a gentle side sway with each step (shear of the model's up axis)
+    const m = I.hero.m, c = Math.cos(rFace), s = Math.sin(rFace), ln = 0.1 * rMv + dfa * 0.0, rl = Math.sin(H.bob) * 0.03 * rMv - dfa * 0.05 * rMv, sy = m[5];
+    m[4] = (ln * s + rl * c) * sy; m[6] = (ln * c - rl * s) * sy;
+  }
   wM(SH.m, shn++, hx, hgy + 0.04, hz, 0, 1.25, 1, 1.25);
   const hf = H.hurtT > 0 ? 3 : (H.inv > 0 && Math.sin(t * 40) > 0 ? 1.8 : 1);
-  I.hero.an[0] = H.bob; I.hero.an[1] = Math.min(1, H.mv * 1.2); I.hero.an[2] = 1; I.hero.ana.needsUpdate = true;
+  I.hero.an[0] = H.bob; I.hero.an[1] = Math.min(1, rMv * 1.2); I.hero.an[2] = 1; I.hero.ana.needsUpdate = true;
   I.hero.t[0] = I.hero.t[1] = I.hero.t[2] = hf; I.hero.mesh.count = 1; I.hero.mesh.instanceMatrix.needsUpdate = true; I.hero.at.needsUpdate = true;
   // enemies
   const cnt = cntE; cnt.fill(0);

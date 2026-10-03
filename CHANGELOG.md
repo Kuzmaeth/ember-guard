@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (unreleased)
+- Heroes rebuilt smooth: smooth-shaded GLBs (1.8x finer segments, Catmull-Rom lathe profiles), neck, brows, mouth, smaller head, longer legs.
+- New `SMOOTH` shader define for hero materials (true vertex normals + soft wrap light).
+- Hero animation: knee bend, lagging forearms, head nod/tilt, cape that bends toward the hem, eased facing/move amount, run lean and step sway.
+- Softer early swarm (`RET.earlySwarm`): deaths before 1:00 11 -> 6 of 30 bot runs (noisy).
+
 ## 0.6.0: New boss, champions, sparks, juice, remodels (2026-10-03)
 
 Screenshots: `screenshots/s3c_*`. Model previews: `assets/previews/boss_drake_*`, `enemy_bulwark_*`, `enemy_gloommoth_*`, `boss_ashen_warden_*`.

@@ -39,21 +39,51 @@ void main(){
   #endif
   #ifdef ANIM
   if (aJ > 0.5) {
-    float ph = aAnim.x, mv = aAnim.y, id = aAnim.z, a = 0.0; int axis = 0;
-    if (aJ < 1.5) { a = sin(ph) * 0.9 * mv; }
-    else if (aJ < 2.5) { a = -sin(ph) * 0.9 * mv; }
-    else if (aJ < 3.5) { a = -sin(ph) * 0.7 * mv + sin(uTime * 1.7) * 0.05 * id; }
-    else if (aJ < 4.5) { a = sin(ph) * 0.45 * mv + sin(uTime * 1.9 + 1.0) * 0.06 * id; }
+    float ph = aAnim.x, mv = aAnim.y, id = aAnim.z, a = 0.0, b = 0.0; int axis = 0;
+    vec3 d = pos - aPv;
+    if (aJ < 1.5) { // left leg: hip swing, shin trails with a knee bend while the leg comes forward
+      float sp = sin(ph); a = sp * 0.8 * mv + sin(uTime * 1.3) * 0.015 * id;
+      float kb = max(0.0, -cos(ph)) * 0.95 * mv * smoothstep(0.26, 0.4, -d.y);
+      vec3 e = d - vec3(0.0, -0.28, 0.0); float kc = cos(kb), ks = sin(kb);
+      d = vec3(0.0, -0.28, 0.0) + vec3(e.x, e.y * kc - e.z * ks, e.y * ks + e.z * kc);
+    }
+    else if (aJ < 2.5) {
+      float sp = sin(ph); a = -sp * 0.8 * mv + sin(uTime * 1.3 + 1.0) * 0.015 * id;
+      float kb = max(0.0, cos(ph)) * 0.95 * mv * smoothstep(0.26, 0.4, -d.y);
+      vec3 e = d - vec3(0.0, -0.28, 0.0); float kc = cos(kb), ks = sin(kb);
+      d = vec3(0.0, -0.28, 0.0) + vec3(e.x, e.y * kc - e.z * ks, e.y * ks + e.z * kc);
+    }
+    else if (aJ < 3.5) { // left arm: counter-swing with a lagging forearm, resting hang, breathing
+      float el = smoothstep(0.1, 0.32, -d.y);
+      a = -sin(ph - 0.35 * el) * 0.62 * mv + sin(uTime * 1.7) * 0.04 * id;
+      b = 0.05 + 0.04 * mv * (0.5 + 0.5 * sin(ph * 2.0)) + sin(uTime * 1.7 + 0.5) * 0.02 * id;
+      a -= el * (0.1 + 0.32 * mv * (0.5 + 0.5 * sin(ph - 0.35)));
+    }
+    else if (aJ < 4.5) { // right arm (holds the lantern: steadier)
+      float el = smoothstep(0.1, 0.32, -d.y);
+      a = sin(ph - 0.35 * el) * 0.4 * mv + sin(uTime * 1.9 + 1.0) * 0.045 * id;
+      b = -0.05 - 0.03 * mv * (0.5 + 0.5 * sin(ph * 2.0)) - sin(uTime * 1.9 + 1.5) * 0.02 * id;
+      a -= el * (0.06 + 0.2 * mv * (0.5 + 0.5 * sin(ph + 2.8)));
+    }
     else if (aJ < 5.5) { a = sin(ph) * 0.5 * mv + sin(uTime * 3.0 + aPv.z * 5.0) * 0.05 * id; axis = 1; }
     else if (aJ < 6.5) { a = -sin(ph) * 0.5 * mv + sin(uTime * 3.0 + aPv.z * 5.0 + 2.0) * 0.05 * id; axis = 1; }
     else if (aJ < 7.5) { a = sin(uTime * 2.0 + ph * 0.3) * 0.16; axis = 2; }
-    else if (aJ < 8.5) { a = sin(ph * 2.0) * 0.07 * mv + sin(uTime * 2.0) * 0.03 * id; }
+    else if (aJ < 8.5) { // head: nods on each step, eases a beat behind the body, looks around when idle
+      a = sin(ph * 2.0 - 0.6) * 0.045 * mv + sin(uTime * 1.6) * 0.025 * id;
+      b = sin(ph - 0.5) * 0.035 * mv + sin(uTime * 0.9) * 0.05 * id;
+    }
     else if (aJ > 9.5) { a = (0.18 + sin(uTime * 3.4 + ph * 0.15) * 0.42) * sign(aPv.x); axis = 2; }
-    else { a = 0.14 + sin(ph + aPv.x * 3.0) * 0.2 * mv + sin(uTime * 3.0 + aPv.y) * 0.05 * (id + mv); }
-    vec3 d = pos - aPv; float c = cos(a), s = sin(a);
+    else { // cape and scarf tail: bends progressively towards the hem and streams back with speed
+      float k = clamp(-d.y * 1.15, 0.0, 1.0);
+      float w = 0.2 + k * 0.8;
+      a = (0.1 + 0.34 * mv * (0.7 + 0.3 * sin(ph * 2.0 - 1.0)) + sin(uTime * 2.4 + k * 2.2 + aPv.x * 3.0) * 0.05 * (id + mv)) * w;
+      b = sin(ph - 1.2) * 0.07 * mv * k + sin(uTime * 1.7 + k * 1.5) * 0.025 * k * id;
+    }
+    float c = cos(a), s = sin(a);
     if (axis == 0) { d = vec3(d.x, d.y * c - d.z * s, d.y * s + d.z * c); nrm = vec3(nrm.x, nrm.y * c - nrm.z * s, nrm.y * s + nrm.z * c); }
     else if (axis == 1) { d = vec3(d.x * c + d.z * s, d.y, -d.x * s + d.z * c); nrm = vec3(nrm.x * c + nrm.z * s, nrm.y, -nrm.x * s + nrm.z * c); }
     else { d = vec3(d.x * c - d.y * s, d.x * s + d.y * c, d.z); nrm = vec3(nrm.x * c - nrm.y * s, nrm.x * s + nrm.y * c, nrm.z); }
+    if (b != 0.0) { float c2 = cos(b), s2 = sin(b); d = vec3(d.x * c2 - d.y * s2, d.x * s2 + d.y * c2, d.z); nrm = vec3(nrm.x * c2 - nrm.y * s2, nrm.x * s2 + nrm.y * c2, nrm.z); }
     pos = aPv + d;
   }
   #endif
@@ -87,6 +117,8 @@ void main(){
   vec3 ns = normalize(vN); if (!gl_FrontFacing) ns = -ns;
   #ifdef RING
   vec3 n = normalize(mix(nf, ns, 0.4));
+  #elif defined(SMOOTH)
+  vec3 n = ns;
   #else
   vec3 n = normalize(mix(nf, ns, 0.8));
   #endif
@@ -104,6 +136,10 @@ void main(){
   float ndlM = max(dot(n, normalize(vec3(-0.4, 0.8, 0.3))), 0.0);
   float hg = 0.75 + 0.45 * clamp(vW.y / 3.0, 0.0, 1.0);
   vec3 light = uAmb * hg * (0.75 + 0.25 * n.y) + uMoon * ndlM * 0.8 + fireL + heroL;
+  #ifdef SMOOTH
+  // soft wrap light on the shadow side so the rounded forms don't go flat
+  light += uAmb * 0.25 * (0.5 - 0.5 * dot(n, normalize(vec3(-0.4, 0.8, 0.3))));
+  #endif
   vec3 base = vCol;
   #ifdef RING
   // ground detail: hard-edged tonal patches, pebbles and flecks in world space (crisp, no texture); fine scales fade out when they approach one pixel
@@ -131,8 +167,9 @@ void main(){
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-export function makeLit(tint, ring, double, grass) {
+export function makeLit(tint, ring, double, grass, smooth) {
   const defs = {};
+  if (smooth) defs.SMOOTH = '';
   if (tint) { defs.TINT = ''; defs.ANIM = ''; }
   if (grass) defs.GRASS = '';
   if (ring) defs.RING = '';
@@ -609,7 +646,7 @@ export function previewOpen(el) {
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
   const disc = new THREE.Mesh(new THREE.CircleGeometry(1.9, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x010208 }));
   disc.position.set(0, 0.01, 3.4); sc.add(disc);
-  prev = { el, sc, cam, disc, mat: makeLit(true, false, true), inst: null, t: 0, locked: false, frame: 0 };
+  prev = { el, sc, cam, disc, mat: makeLit(true, false, true, false, true), inst: null, t: 0, locked: false, frame: 0 };
 }
 export function previewSet(hero, locked) {
   if (!prev) return;

@@ -94,8 +94,9 @@ J_LEG_L, J_LEG_R, J_ARM_L, J_ARM_R, J_SPIDER_A, J_SPIDER_B, J_SWAY, J_HEAD, J_CA
 class Asset:
     """One bmesh per asset. Every part is a separate island carrying its own colour/emissive/joint/pivot."""
 
-    def __init__(self, name, seed=1):
-        self.name, self.rng = name, random.Random(seed)
+    def __init__(self, name, seed=1, smooth=False, res=1.0):
+        # smooth: smooth-shaded export; res>1: finer segments/subdivisions and Catmull-Rom resampled lathe profiles
+        self.name, self.rng, self.smooth, self.res = name, random.Random(seed), smooth, res
         self.bm = bmesh.new()
         self.lc = self.bm.loops.layers.float_color.new('Col')
         self.l_em = self.bm.verts.layers.float.new('_EM')
@@ -115,6 +116,8 @@ class Asset:
         if floor is not None:
             for v in verts:
                 v.co.z = max(v.co.z, floor)
+        if self.smooth:
+            jit *= 0.15                 # fine smooth surfaces: per-face colour speckle reads as noise
         faces = list({f for v in verts for f in v.link_faces})
         bmesh.ops.recalc_face_normals(self.bm, faces=faces)
         p = Vector(pv)
@@ -143,6 +146,8 @@ class Asset:
         return Matrix.LocRotScale(Vector(loc), Euler(rot), Vector(scl))
 
     def ico(self, loc, scl, c, sub=2, rot=(0, 0, 0), **k):
+        if self.res > 1.0 and sub >= 2:
+            sub += 1
         v = bmesh.ops.create_icosphere(self.bm, subdivisions=sub, radius=1.0, matrix=self._mat(loc, rot, scl))['verts']
         return self._tag(v, c, **k)
 
@@ -163,6 +168,7 @@ class Asset:
     def limb(self, p0, p1, r0, r1, c, seg=5, **k):
         """Tapered tube from p0 to p1."""
         p0, p1 = Vector(p0), Vector(p1)
+        seg = max(seg, int(seg * self.res))
         d = p1 - p0
         q = Vector((0, 0, 1)).rotation_difference(d.normalized())
         m = Matrix.Translation((p0 + p1) / 2) @ q.to_matrix().to_4x4()
@@ -180,10 +186,30 @@ class Asset:
             v.co += d.normalized() * (noise.noise(v.co * freq + off) * amt)
         return verts
 
+    def _resample(self, pts, n=3):
+        """Catmull-Rom through the profile points, n sub-steps per span (softens coarse profiles for smooth shading)."""
+        if len(pts) < 3:
+            return pts
+        P_ = [pts[0]] + list(pts) + [pts[-1]]
+        out = []
+        for i in range(1, len(P_) - 2):
+            p0, p1, p2, p3 = P_[i - 1], P_[i], P_[i + 1], P_[i + 2]
+            for k in range(n):
+                t = k / n
+                t2, t3 = t * t, t * t * t
+                out.append(tuple(0.5 * ((2 * p1[m]) + (-p0[m] + p2[m]) * t + (2 * p0[m] - 5 * p1[m] + 4 * p2[m] - p3[m]) * t2
+                                        + (-p0[m] + 3 * p1[m] - 3 * p2[m] + p3[m]) * t3) for m in (0, 1)))
+        out.append(tuple(pts[-1]))
+        out = [(max(r, 0.0), z) for r, z in out]
+        return out
+
     def lathe(self, pts, seg, c, loc=(0, 0, 0), scl=(1, 1, 1), cap_bottom=True, cap_top=True, bend=None, **k):
         """Surface of revolution from [(radius, z), ...] bottom to top. bend(z)->(dx, dy) shifts rings (curved hats, tails)."""
         bm = self.bm
         rings, verts = [], []
+        if self.res > 1.0:
+            seg = int(seg * self.res)
+            pts = self._resample(pts)
         for (r, z) in pts:
             r = max(r, 0.002)
             dx, dy = bend(z) if bend else (0.0, 0.0)
@@ -228,7 +254,7 @@ class Asset:
         bm.to_mesh(me)
         bm.free()
         for p in me.polygons:
-            p.use_smooth = False
+            p.use_smooth = self.smooth
         ca = me.color_attributes['Col']
         me.color_attributes.active_color = ca
         me.color_attributes.render_color_index = me.color_attributes.active_color_index
@@ -608,7 +634,7 @@ def build_camp():
 # ---------------------------------------------------------------- heroes (shader joints: legs 1/2, arms 3/4, head 8, cape 9)
 def _hero(name, o, seed):
     """Rounded chibi hero: profile-lathe coat and hats, tapered round limbs, fine-faceted head (flat shaded, ~3-4k tris)."""
-    a = Asset(name, seed=seed)
+    a = Asset(name, seed=seed, smooth=True, res=1.8)
     tunic, cloak, skin = col(o['tunic']), col(o['cloak']), col('SKIN')
     boot, pant = col('BARK', 0.62), (0.2, 0.17, 0.27)
     w = o.get('wide', 1.0)
@@ -642,11 +668,15 @@ def _hero(name, o, seed):
             if v.co.z < 1.6 and v.co.y < -0.08:
                 v.co.y = -0.08
     a.ico((0, 0.06, 1.575), (hr * 1.06, hr * 1.05, hr * 0.93), col(o['hair']), sub=3, pre=hair_cut, jit=0.035, **head)
+    a.lathe([(0.1, 1.12), (0.098, 1.22), (0.092, 1.32), (0.096, 1.4)], 14, skin, cap_bottom=False, cap_top=False, jit=0, **head)   # neck
+    hc = col(o['hair'], 0.8)
     for sd in (-1, 1):
-        a.ico((sd * 0.12, -hr * 0.9, 1.5), (0.052, 0.03, 0.072), (0.1, 0.07, 0.09), sub=2, jit=0, **head)
-        a.ico((sd * 0.105, -hr * 0.965, 1.528), (0.018, 0.01, 0.018), col('WHITE', 1.4), sub=1, em=1, jit=0, **head)
-        a.ico((sd * 0.2, -hr * 0.8, 1.42), (0.058, 0.02, 0.036), (1.0, 0.55, 0.5), sub=1, jit=0, **head)
-    a.ico((0, -hr * 0.98, 1.45), (0.042, 0.032, 0.038), col('SKIN', 0.95), sub=2, jit=0, **head)
+        a.ico((sd * 0.12, -hr * 0.9, 1.5), (0.044, 0.03, 0.058), (0.1, 0.07, 0.09), sub=2, jit=0, **head)
+        a.ico((sd * 0.108, -hr * 0.968, 1.522), (0.014, 0.008, 0.014), col('WHITE', 1.4), sub=1, em=1, jit=0, **head)
+        a.ico((sd * 0.2, -hr * 0.78, 1.42), (0.05, 0.012, 0.03), (1.0, 0.62, 0.55), sub=1, jit=0, **head)
+        a.ico((sd * 0.125, -hr * 0.915, 1.585), (0.058, 0.014, 0.014), hc, sub=1, rot=(0, sd * 0.2, 0), jit=0, **head)   # brow
+    a.ico((0, -hr * 0.98, 1.45), (0.036, 0.03, 0.034), col('SKIN', 0.95), sub=2, jit=0, **head)
+    a.ico((0, -hr * 0.96, 1.375), (0.05, 0.01, 0.011), (0.55, 0.22, 0.2), sub=1, jit=0, **head)                            # mouth
     # headwear (all lathe profiles, so the silhouette is round instead of boxy)
     hat = col(o['hatc']); hl = col(o['hatc'], 1.25)
     if o['hat'] == 'brim':
@@ -690,15 +720,15 @@ def _hero(name, o, seed):
     lp, rp = (-0.32, 0, 1.1), (0.32, 0, 1.1)
     la, ra = dict(j=J_ARM_L, pv=lp), dict(j=J_ARM_R, pv=rp)
     cuff = col(o['tunic'], 0.75)
-    a.ico((-0.33, 0, 1.08), (0.115, 0.11, 0.11), tunic, sub=2, jit=0.02, **la)
+    a.ico((-0.33, 0, 1.08), (0.1, 0.1, 0.1), tunic, sub=2, jit=0.02, **la)
     a.limb((-0.34, 0, 1.08), (-0.41, 0, 0.9), 0.095, 0.08, tunic, seg=8, **la)
-    a.ico((-0.42, 0, 0.89), (0.085,) * 3, tunic, sub=2, jit=0.02, **la)
+    a.ico((-0.42, 0, 0.89), (0.08,) * 3, tunic, sub=2, jit=0.02, **la)
     a.limb((-0.42, 0, 0.89), (-0.45, 0, 0.77), 0.08, 0.07, tunic, seg=8, **la)
     a.lathe([(0.078, 0.74), (0.088, 0.78), (0.078, 0.82)], 8, cuff, loc=(-0.45, 0, 0), jit=0.02, cap_bottom=False, cap_top=False, **la)
     a.ico((-0.455, 0, 0.7), (0.088,) * 3, skin, sub=3, jit=0.015, **la)
-    a.ico((0.33, 0, 1.08), (0.115, 0.11, 0.11), tunic, sub=2, jit=0.02, **ra)
+    a.ico((0.33, 0, 1.08), (0.1, 0.1, 0.1), tunic, sub=2, jit=0.02, **ra)
     a.limb((0.34, 0, 1.08), (0.37, -0.12, 0.98), 0.095, 0.08, tunic, seg=8, **ra)
-    a.ico((0.37, -0.13, 0.97), (0.085,) * 3, tunic, sub=2, jit=0.02, **ra)
+    a.ico((0.37, -0.13, 0.97), (0.08,) * 3, tunic, sub=2, jit=0.02, **ra)
     a.limb((0.37, -0.13, 0.97), (0.38, -0.3, 0.9), 0.08, 0.07, tunic, seg=8, **ra)
     a.ico((0.38, -0.35, 0.88), (0.088,) * 3, skin, sub=3, jit=0.015, **ra)
     iron, lx, ly = (0.13, 0.1, 0.12), 0.38, -0.4
@@ -706,7 +736,22 @@ def _hero(name, o, seed):
     a.lathe([(0.02, 0.7), (0.13, 0.72), (0.07, 0.76)], 8, iron, loc=(lx, ly, 0), jit=0, **ra)
     a.lathe([(0.085, 0.56), (0.095, 0.62), (0.09, 0.7), (0.07, 0.72)], 10, col('EMBER', 1.1), loc=(lx, ly, 0), em=1, jit=0, **ra)
     a.lathe([(0.1, 0.43), (0.11, 0.47)], 10, iron, loc=(lx, ly, 0), jit=0, **ra)
-    return a.finish(1.0)
+    # less chibi: shrink the whole head group (face, hair, hat) toward the neck
+    for v in a.bm.verts:
+        if v[a.l_j] == J_HEAD:
+            v.co = Vector((0, 0, 1.3)) + (v.co - Vector((0, 0, 1.3))) * 0.84
+    # longer legs: stretch the trouser section and lift everything above it (pivots follow), then scale back to height
+    dz = 0.2
+    for v in a.bm.verts:
+        j = v[a.l_j]
+        if j in (J_LEG_L, J_LEG_R):
+            if v.co.z > 0.2:
+                v.co.z = 0.2 + (v.co.z - 0.2) * (1 + dz / 0.3)
+        else:
+            v.co.z += dz
+        if j > 0:
+            p_ = v[a.l_pv]; v[a.l_pv] = Vector((p_.x, p_.y, p_.z + dz))
+    return a.finish(0.92)
 
 
 def build_hero_warden():
